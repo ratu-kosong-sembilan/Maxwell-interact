@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leader Progression Model (LPM) — Simulasi Petir Dinamis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-body: #0a0e1a;
+            --bg-container: linear-gradient(145deg, #111827, #0d1422);
+            --text-body: #e0e8f0;
+            --text-muted: #8aa3c9;
+            --text-sub: #7a9bc0;
+            --text-heading: linear-gradient(135deg, #f0f7ff, #7ec8f0);
+            --badge-bg: rgba(30, 60, 120, 0.5);
+            --badge-border: rgba(100, 180, 255, 0.15);
+            --badge-text: #9bc5f0;
+            --dot-idle: #4a7a9c;
+            --dot-active: #f7c948;
+            --dot-active-shadow: #f7c94888;
+            --dot-connected: #4fc3ff;
+            --dot-connected-shadow: #4fc3ffaa;
+            --canvas-bg: radial-gradient(ellipse at 50% 30%, #131d35, #080c18);
+            --canvas-border: rgba(255, 255, 255, 0.04);
+            --canvas-shadow: rgba(0, 20, 60, 0.6);
+            --panel-bg: rgba(20, 35, 70, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.04);
+            --label-text: #6a8bb0;
+            --value-text: #d6e8ff;
+            --value-small: #7a9bc0;
+            --btn-bg: rgba(60, 120, 200, 0.15);
+            --btn-border: rgba(100, 180, 255, 0.15);
+            --btn-text: #c0d8f0;
+            --btn-hover-bg: rgba(60, 140, 240, 0.25);
+            --btn-hover-border: rgba(100, 180, 255, 0.4);
+            --btn-primary-bg: rgba(60, 180, 255, 0.2);
+            --btn-primary-border: rgba(80, 200, 255, 0.3);
+            --slider-bg: rgba(60, 140, 220, 0.25);
+            --slider-thumb-1: #7ec8f0;
+            --slider-thumb-2: #2a7ab0;
+            --speed-label: #b0cce8;
+            --legend-text: #9ab3d0;
+            --swatch-down: linear-gradient(90deg, #4fc3ff, #b3e5fc);
+            --swatch-up: linear-gradient(90deg, #ff6b35, #ffd54f);
+            --swatch-field: rgba(100, 200, 255, 0.25);
+            --legend-note: #7a9bc0;
+            --meeting-dot: #f7c948;
+            --meeting-shadow: #f7c94866;
+            --border-top: rgba(255, 255, 255, 0.04);
+            --theme-btn-bg: rgba(60, 120, 200, 0.15);
+            --theme-btn-border: rgba(100, 180, 255, 0.15);
+            --theme-btn-text: #c0d8f0;
+            --theme-btn-hover-bg: rgba(60, 140, 240, 0.25);
+            --theme-btn-hover-border: rgba(100, 180, 255, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f4fa;
+            --bg-container: linear-gradient(145deg, #ffffff, #e8eef7);
+            --text-body: #1a2332;
+            --text-muted: #5a6d87;
+            --text-sub: #4a5e7a;
+            --text-heading: linear-gradient(135deg, #0a4a8a, #1e88c7);
+            --badge-bg: rgba(210, 230, 255, 0.6);
+            --badge-border: rgba(80, 150, 220, 0.25);
+            --badge-text: #1a5a9a;
+            --dot-idle: #7a9db8;
+            --dot-active: #f59e0b;
+            --dot-active-shadow: #f59e0b88;
+            --dot-connected: #0ea5e9;
+            --dot-connected-shadow: #0ea5e9aa;
+            --canvas-bg: radial-gradient(ellipse at 50% 30%, #e0efff, #c8dff7);
+            --canvas-border: rgba(0, 0, 0, 0.08);
+            --canvas-shadow: rgba(0, 40, 100, 0.1);
+            --panel-bg: rgba(230, 242, 255, 0.65);
+            --panel-border: rgba(0, 0, 0, 0.06);
+            --label-text: #5a7a9c;
+            --value-text: #1a3a5c;
+            --value-small: #4a6a8c;
+            --btn-bg: rgba(200, 220, 245, 0.6);
+            --btn-border: rgba(120, 170, 220, 0.3);
+            --btn-text: #1a4a7a;
+            --btn-hover-bg: rgba(180, 210, 245, 0.85);
+            --btn-hover-border: rgba(80, 150, 220, 0.5);
+            --btn-primary-bg: rgba(60, 160, 230, 0.15);
+            --btn-primary-border: rgba(40, 140, 210, 0.35);
+            --slider-bg: rgba(120, 170, 220, 0.35);
+            --slider-thumb-1: #4a9fd4;
+            --slider-thumb-2: #1e6fa0;
+            --speed-label: #4a6a8c;
+            --legend-text: #4a5e78;
+            --swatch-down: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+            --swatch-up: linear-gradient(90deg, #ea580c, #fbbf24);
+            --swatch-field: rgba(60, 140, 200, 0.35);
+            --legend-note: #5a6d87;
+            --meeting-dot: #f59e0b;
+            --meeting-shadow: #f59e0b66;
+            --border-top: rgba(0, 0, 0, 0.06);
+            --theme-btn-bg: rgba(200, 220, 245, 0.6);
+            --theme-btn-border: rgba(120, 170, 220, 0.3);
+            --theme-btn-text: #1a4a7a;
+            --theme-btn-hover-bg: rgba(180, 210, 245, 0.85);
+            --theme-btn-hover-border: rgba(80, 150, 220, 0.5);
+        }
+
+        body {
+            background: var(--bg-body);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-body);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--bg-container);
+            border-radius: 28px;
+            padding: 28px 32px 32px 32px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--panel-border);
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 10px 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            background: var(--text-heading);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .header-title .sub {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+            -webkit-text-fill-color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            background: var(--badge-bg);
+            backdrop-filter: blur(6px);
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 1px solid var(--badge-border);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--badge-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .theme-toggle {
+            background: var(--theme-btn-bg);
+            border: 1px solid var(--theme-btn-border);
+            color: var(--theme-btn-text);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+        }
+        .theme-toggle:hover {
+            background: var(--theme-btn-hover-bg);
+            border-color: var(--theme-btn-hover-border);
+            transform: scale(1.02);
+        }
+        .theme-toggle:active {
+            transform: scale(0.96);
+        }
+
+        .status-badge .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            background: var(--dot-idle);
+            transition: background 0.4s;
+        }
+        .status-badge .dot.active {
+            background: var(--dot-active);
+            box-shadow: 0 0 16px var(--dot-active-shadow);
+        }
+        .status-badge .dot.connected {
+            background: var(--dot-connected);
+            box-shadow: 0 0 24px var(--dot-connected-shadow);
+        }
+
+        .canvas-wrap {
+            position: relative;
+            background: var(--canvas-bg);
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--canvas-border);
+            box-shadow: inset 0 0 80px var(--canvas-shadow);
+            aspect-ratio: 16 / 9;
+            min-height: 400px;
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #lpmCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
+
+        /* --- Info & Controls --- */
+        .bottom-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 30px;
+            margin-top: 20px;
+            align-items: stretch;
+        }
+
+        .info-box {
+            flex: 2;
+            min-width: 240px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(4px);
+            border-radius: 14px;
+            padding: 14px 20px;
+            border: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .info-box .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--label-text);
+        }
+
+        .info-box .value {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--value-text);
+            margin-top: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .info-box .value small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--value-small);
+            margin-left: 6px;
+        }
+
+        .controls {
+            flex: 3;
+            min-width: 280px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 16px;
+            background: var(--panel-bg);
+            border-radius: 14px;
+            padding: 10px 18px;
+            border: 1px solid var(--panel-border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .controls button {
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--btn-text);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            backdrop-filter: blur(4px);
+        }
+
+        .controls button:hover {
+            background: var(--btn-hover-bg);
+            border-color: var(--btn-hover-border);
+            color: var(--text-body);
+            transform: scale(1.02);
+        }
+        .controls button:active {
+            transform: scale(0.96);
+        }
+        .controls button.primary {
+            background: var(--btn-primary-bg);
+            border-color: var(--btn-primary-border);
+            min-width: 80px;
+            justify-content: center;
+        }
+        .controls button.primary:hover {
+            background: var(--btn-primary-bg);
+            border-color: var(--btn-primary-border);
+            opacity: 0.85;
+        }
+
+        .controls .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .controls .slider-group label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            letter-spacing: 0.3px;
+        }
+
+        .controls input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            flex: 1;
+            height: 4px;
+            border-radius: 4px;
+            background: var(--slider-bg);
+            outline: none;
+            transition: background 0.2s;
+        }
+        .controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--slider-thumb-1), var(--slider-thumb-2));
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 12px rgba(60, 180, 255, 0.3);
+        }
+        .controls input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--slider-thumb-1), var(--slider-thumb-2));
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .controls .speed-label {
+            font-size: 0.8rem;
+            color: var(--speed-label);
+            min-width: 36px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .legend {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--legend-text);
+        }
+        .legend-item .swatch {
+            width: 22px;
+            height: 3px;
+            border-radius: 4px;
+        }
+        .legend-item .swatch.down {
+            background: var(--swatch-down);
+            height: 3px;
+        }
+        .legend-item .swatch.up {
+            background: var(--swatch-up);
+            height: 3px;
+        }
+        .legend-item .swatch.field {
+            background: transparent;
+            border-top: 2px dashed var(--swatch-field);
+            height: 0;
+            width: 26px;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding: 16px;
+            }
+            .header-title h1 {
+                font-size: 1.3rem;
+            }
+            .controls {
+                padding: 12px 14px;
+            }
+            .controls button {
+                font-size: 0.75rem;
+                padding: 5px 12px;
+            }
+            .info-box .value {
+                font-size: 1rem;
+            }
+            .status-badge {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+            .theme-toggle {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-title">
+                <h1>⚡ Leader Progression Model</h1>
+                <div class="sub">“Memfilmkan proses, bukan hanya hasil akhir” — Eriksson &amp; kolega</div>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ubah tema">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeLabel">Malam</span>
+                </button>
+                <div class="status-badge">
+                    <span class="dot" id="statusDot"></span>
+                    <span id="statusText">Menunggu</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANVAS -->
+        <div class="canvas-wrap">
+            <canvas id="lpmCanvas"></canvas>
+        </div>
+
+        <!-- BOTTOM PANEL -->
+        <div class="bottom-panel">
+            <div class="info-box">
+                <div class="label">Langkah Leader Turun</div>
+                <div class="value" id="stepCounter">0 <small>/ <span id="totalSteps">0</span></small></div>
+                <div class="label" style="margin-top:6px;">Posisi Leader</div>
+                <div class="value" id="leaderPos" style="font-size:0.95rem;">—</div>
+            </div>
+            <div class="info-box">
+                <div class="label">Streamer Naik</div>
+                <div class="value" id="streamerStatus">Belum aktif</div>
+                <div class="label" style="margin-top:6px;">Status Sambaran</div>
+                <div class="value" id="strikeStatus" style="font-size:0.95rem;">Menunggu inisiasi</div>
+            </div>
+            <div class="controls">
+                <button class="primary" id="playBtn">▶ Mulai</button>
+                <button id="resetBtn">⟲ Reset</button>
+                <div class="slider-group">
+                    <label>Kecepatan</label>
+                    <input type="range" id="speedSlider" min="1" max="10" value="4" step="1" />
+                    <span class="speed-label" id="speedDisplay">4×</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="legend" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-top);">
+            <span class="legend-item"><span class="swatch down"></span> Leader turun (berundak)</span>
+            <span class="legend-item"><span class="swatch up"></span> Streamer naik (dari tower)</span>
+            <span class="legend-item"><span class="swatch field"></span> Medan listrik</span>
+            <span class="legend-item" style="color:var(--legend-note); gap:4px;">
+                <span style="background:var(--meeting-dot); width:10px; height:10px; border-radius:50%; display:inline-block; box-shadow:0 0 12px var(--meeting-shadow);"></span>
+                Titik temu
+            </span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- CANVAS SETUP ---
+            const canvas = document.getElementById('lpmCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let W, H;
+
+            function resize() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                W = rect.width;
+                H = rect.height;
+                canvas.width = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width = W + 'px';
+                canvas.style.height = H + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                updateCoords();
+                drawScene();
+            }
+            window.addEventListener('resize', resize);
+
+            // --- CONSTANTS (in canvas coords) ---
+            const CLOUD_Y_RATIO = 0.10;
+            const TOWER_Y_RATIO = 0.88;
+            const GROUND_Y_RATIO = 0.95;
+
+            let cloudY, towerY, groundY;
+            let cx, cy; // cloud center
+
+            function updateCoords() {
+                cloudY = H * CLOUD_Y_RATIO;
+                towerY = H * TOWER_Y_RATIO;
+                groundY = H * GROUND_Y_RATIO;
+                cx = W * 0.5;
+                cy = cloudY + 20;
+            }
+
+            // --- STATE ---
+            const state = {
+                // Leader path (pre-generated)
+                leaderPoints: [],
+                currentStep: 0, // index into leaderPoints
+                maxSteps: 0,
+
+                // Streamer
+                streamerActive: false,
+                streamerProgress: 0, // 0..1
+                streamerStartX: 0,
+                streamerStartY: 0,
+
+                // Meeting
+                met: false,
+                meetX: 0,
+                meetY: 0,
+                flashAlpha: 0,
+                flashTimer: 0,
+
+                // Controls
+                playing: false,
+                speed: 4,
+                frameCount: 0,
+                stepDelay: 0,
+                // Status
+                finished: false,
+            };
+
+            // --- DOM refs ---
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const stepCounter = document.getElementById('stepCounter');
+            const totalStepsSpan = document.getElementById('totalSteps');
+            const leaderPos = document.getElementById('leaderPos');
+            const streamerStatus = document.getElementById('streamerStatus');
+            const strikeStatus = document.getElementById('strikeStatus');
+            const playBtn = document.getElementById('playBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const speedSlider = document.getElementById('speedSlider');
+            const speedDisplay = document.getElementById('speedDisplay');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeLabel = document.getElementById('themeLabel');
+
+            // --- THEME COLORS (canvas palette) ---
+            const THEME_COLORS = {
+                dark: {
+                    skyInner: '#192a4a',
+                    skyMid: '#0f1a30',
+                    skyOuter: '#060b16',
+                    groundFill: 'rgba(20,35,55,0.6)',
+                    groundDots: 'rgba(40,70,100,0.15)',
+                    cloudCenter: 'rgba(220,240,255,0.9)',
+                    cloudMid: 'rgba(160,200,240,0.6)',
+                    cloudOuter: 'rgba(60,100,160,0.1)',
+                    cloudSymbol: 'rgba(255,255,255,0.5)',
+                    towerLeft: '#2a3a5a',
+                    towerMid: '#5a7a9a',
+                    towerRight: '#2a3a5a',
+                    towerCross: 'rgba(100,160,200,0.2)',
+                    towerBase: 'rgba(50,70,90,0.5)',
+                    towerPlus: 'rgba(255,200,80,0.5)',
+                    streamerGlow: 'rgba(255,150,50,0.15)',
+                    fieldLines: 'rgba(100,200,255,0.07)',
+                    leaderPathInactive: 'rgba(80,150,200,0.12)',
+                    leaderPathActiveStart: { r: 180, g: 235, b: 255 },
+                    leaderGlow: 'rgba(80,200,255,0.25)',
+                    leaderTipInner: 'rgba(220,248,255,0.9)',
+                    leaderTipMid: 'rgba(140,220,255,0.5)',
+                    leaderTipOuter: 'rgba(80,200,255,0)',
+                    leaderTipCore: '#b3e5fc',
+                    leaderLabel: 'rgba(160,220,255,0.5)',
+                    stepLabel: 'rgba(180,220,255,0.4)',
+                    streamerPath: 'rgba(255,180,80,',
+                    streamerShadow: 'rgba(255,150,50,0.3)',
+                    streamerTipInner: 'rgba(255,200,100,',
+                    streamerTipMid: 'rgba(255,150,50,',
+                    streamerTipCore: 'rgba(255,220,150,',
+                    streamerLabel: 'rgba(255,200,100,0.5)',
+                    cloudLabel: 'rgba(255,255,255,0.6)',
+                    towerLabel: 'rgba(255,200,100,0.6)',
+                    flashCenter: 'rgba(255,255,255,',
+                    flashMid: 'rgba(200,240,255,',
+                    flashOuter: 'rgba(100,200,255,',
+                    flashShadow: 'rgba(255,255,255,0.6)',
+                    flashStroke: 'rgba(255,255,255,',
+                    flashText: 'rgba(255,255,255,'
+                },
+                light: {
+                    skyInner: '#87ceeb',
+                    skyMid: '#b8d8f0',
+                    skyOuter: '#e0f0fa',
+                    groundFill: 'rgba(120,150,100,0.5)',
+                    groundDots: 'rgba(100,130,90,0.3)',
+                    cloudCenter: 'rgba(255,255,255,0.95)',
+                    cloudMid: 'rgba(230,245,255,0.75)',
+                    cloudOuter: 'rgba(180,210,230,0.3)',
+                    cloudSymbol: 'rgba(80,120,160,0.6)',
+                    towerLeft: '#4a5a6a',
+                    towerMid: '#7a8a9a',
+                    towerRight: '#4a5a6a',
+                    towerCross: 'rgba(100,130,160,0.35)',
+                    towerBase: 'rgba(80,100,120,0.4)',
+                    towerPlus: 'rgba(220,140,40,0.7)',
+                    streamerGlow: 'rgba(255,140,40,0.2)',
+                    fieldLines: 'rgba(60,120,180,0.15)',
+                    leaderPathInactive: 'rgba(80,140,190,0.18)',
+                    leaderPathActiveStart: { r: 100, g: 190, b: 240 },
+                    leaderGlow: 'rgba(60,160,220,0.3)',
+                    leaderTipInner: 'rgba(220,245,255,0.95)',
+                    leaderTipMid: 'rgba(120,200,245,0.6)',
+                    leaderTipOuter: 'rgba(60,160,220,0)',
+                    leaderTipCore: '#7dd3fc',
+                    leaderLabel: 'rgba(60,140,190,0.6)',
+                    stepLabel: 'rgba(80,150,200,0.5)',
+                    streamerPath: 'rgba(230,120,30,',
+                    streamerShadow: 'rgba(230,100,20,0.35)',
+                    streamerTipInner: 'rgba(255,180,60,',
+                    streamerTipMid: 'rgba(230,120,30,',
+                    streamerTipCore: 'rgba(255,210,120,',
+                    streamerLabel: 'rgba(200,110,30,0.6)',
+                    cloudLabel: 'rgba(40,70,100,0.7)',
+                    towerLabel: 'rgba(180,100,20,0.7)',
+                    flashCenter: 'rgba(255,255,255,',
+                    flashMid: 'rgba(200,240,255,',
+                    flashOuter: 'rgba(80,180,230,',
+                    flashShadow: 'rgba(255,255,255,0.8)',
+                    flashStroke: 'rgba(255,255,255,',
+                    flashText: 'rgba(255,255,255,'
+                }
+            };
+
+            function getCurrentTheme() {
+                return document.documentElement.getAttribute('data-theme') || 'dark';
+            }
+
+            function getThemeColors() {
+                return THEME_COLORS[getCurrentTheme()];
+            }
+
+            function applyTheme(theme) {
+                const next = theme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                try {
+                    localStorage.setItem('lpm-theme', next);
+                } catch (e) {
+                    // localStorage may be unavailable
+                }
+                themeIcon.textContent = next === 'light' ? '☀' : '🌙';
+                themeLabel.textContent = next === 'light' ? 'Siang' : 'Malam';
+                drawScene();
+            }
+
+            function toggleTheme() {
+                applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark');
+            }
+
+            function initTheme() {
+                let saved = 'dark';
+                try {
+                    saved = localStorage.getItem('lpm-theme') || 'dark';
+                } catch (e) {
+                    // ignore
+                }
+                applyTheme(saved);
+            }
+
+            // --- GENERATE LEADER PATH (zigzag) ---
+            function generateLeaderPath() {
+                const pts = [];
+                const startX = cx;
+                const startY = cloudY + 30;
+                const endY = towerY - 40;
+
+                const numSteps = 16 + Math.floor(Math.random() * 8); // 16-23
+                const stepY = (endY - startY) / numSteps;
+                const spread = W * 0.07;
+
+                let x = startX;
+                let y = startY;
+                pts.push({ x, y });
+
+                for (let i = 0; i < numSteps; i++) {
+                    y += stepY;
+                    // zigzag dengan arah acak, tapi dengan kecenderungan ke tengah
+                    const rand = (Math.random() - 0.5) * spread * 1.6;
+                    // tambahkan sedikit "memori" arah untuk efek berkelok
+                    const bias = (i % 3 === 0) ? (Math.random() - 0.5) * spread * 0.5 : 0;
+                    x += rand + bias;
+                    // jaga agar tidak terlalu keluar
+                    x = Math.max(W * 0.08, Math.min(W * 0.92, x));
+                    pts.push({ x, y });
+                }
+
+                // tambahkan beberapa titik tambahan dengan cabang kecil (untuk efek)
+                // tapi kita simpan sebagai path utama
+                return pts;
+            }
+
+            // --- RESET ---
+            function resetSimulation() {
+                state.leaderPoints = generateLeaderPath();
+                state.maxSteps = state.leaderPoints.length - 1;
+                state.currentStep = 0;
+                state.streamerActive = false;
+                state.streamerProgress = 0;
+                state.met = false;
+                state.flashAlpha = 0;
+                state.flashTimer = 0;
+                state.playing = false;
+                state.finished = false;
+                state.stepDelay = 0;
+
+                // streamer start dari tower
+                state.streamerStartX = cx + (Math.random() - 0.5) * W * 0.06;
+                state.streamerStartY = towerY - 6;
+
+                updateUI();
+                drawScene();
+                updateStatus('Menunggu', 'idle');
+                playBtn.textContent = '▶ Mulai';
+            }
+
+            // --- UPDATE UI ---
+            function updateUI() {
+                const total = state.maxSteps;
+                totalStepsSpan.textContent = total;
+                const current = Math.min(state.currentStep, total);
+                stepCounter.innerHTML = `${current} <small>/ ${total}</small>`;
+
+                if (state.met) {
+                    leaderPos.textContent = `⦿ Bertemu di (${Math.round(state.meetX)}, ${Math.round(state.meetY)})`;
+                    streamerStatus.textContent = '✅ Tersambung!';
+                    strikeStatus.textContent = '⚡ SAMBARAN TERJADI!';
+                } else if (state.currentStep >= state.maxSteps && !state.met) {
+                    leaderPos.textContent = '— (menyentuh tanah)';
+                    streamerStatus.textContent = state.streamerActive ? 'Aktif' : 'Belum aktif';
+                    strikeStatus.textContent = '❌ Tidak terjadi sambaran (leader ke tanah)';
+                } else if (state.currentStep > 0) {
+                    const p = state.leaderPoints[state.currentStep];
+                    leaderPos.textContent = `(${Math.round(p.x)}, ${Math.round(p.y)})`;
+                    streamerStatus.textContent = state.streamerActive ? `Naik ${Math.round(state.streamerProgress * 100)}%` :
+                        'Belum aktif';
+                    strikeStatus.textContent = state.streamerActive ? 'Streamer mendekati leader...' :
+                        'Menunggu streamer terinisiasi...';
+                } else {
+                    leaderPos.textContent = 'Di awan';
+                    streamerStatus.textContent = 'Belum aktif';
+                    strikeStatus.textContent = 'Leader mulai turun...';
+                }
+            }
+
+            function updateStatus(text, type) {
+                statusText.textContent = text;
+                statusDot.className = 'dot';
+                if (type === 'active') statusDot.classList.add('active');
+                else if (type === 'connected') statusDot.classList.add('connected');
+            }
+
+            // --- DRAWING ---
+            function drawScene() {
+                const c = getThemeColors();
+                ctx.clearRect(0, 0, W, H);
+
+                // --- Background details ---
+                // Gradient sky
+                const grad = ctx.createRadialGradient(cx, H * 0.2, 0, cx, H * 0.2, H * 0.9);
+                grad.addColorStop(0, c.skyInner);
+                grad.addColorStop(0.5, c.skyMid);
+                grad.addColorStop(1, c.skyOuter);
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+
+                // --- Ground ---
+                ctx.fillStyle = c.groundFill;
+                ctx.fillRect(0, groundY - 4, W, H - groundY + 4);
+                ctx.fillStyle = c.groundDots;
+                for (let i = 0; i < W; i += 18) {
+                    ctx.fillRect(i, groundY - 1, 6, 2);
+                }
+
+                // --- Cloud ---
+                drawCloud(cx, cloudY, 120, 40);
+
+                // --- Tower ---
+                drawTower(cx, towerY);
+
+                // --- Electric field lines (faint) ---
+                drawFieldLines();
+
+                // --- Leader path (all segments) ---
+                drawLeaderPath();
+
+                // --- Streamer ---
+                drawStreamer();
+
+                // --- Meeting flash ---
+                if (state.met || state.flashAlpha > 0.01) {
+                    drawMeetingFlash();
+                }
+
+                // --- Labels ---
+                ctx.fillStyle = c.cloudLabel;
+                ctx.font = '14px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('☁ Awan (−)', cx, cloudY - 34);
+                ctx.fillStyle = c.towerLabel;
+                ctx.fillText('🗼 Tower (+)', cx, towerY + 32);
+
+                // Step label on leader tip
+                if (state.currentStep > 0 && state.currentStep < state.maxSteps && !state.met) {
+                    const p = state.leaderPoints[state.currentStep];
+                    ctx.fillStyle = c.stepLabel;
+                    ctx.font = '11px monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`step ${state.currentStep}`, p.x + 12, p.y - 6);
+                }
+            }
+
+            // --- Draw Cloud ---
+            function drawCloud(x, y, w, h) {
+                const c = getThemeColors();
+                ctx.save();
+                const grad = ctx.createRadialGradient(x - 10, y - 8, 10, x, y, w * 0.7);
+                grad.addColorStop(0, c.cloudCenter);
+                grad.addColorStop(0.5, c.cloudMid);
+                grad.addColorStop(1, c.cloudOuter);
+                ctx.fillStyle = grad;
+
+                ctx.beginPath();
+                ctx.ellipse(x, y, w * 0.45, h * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(x - w * 0.3, y + 6, w * 0.3, h * 0.35, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(x + w * 0.3, y + 4, w * 0.28, h * 0.33, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(x - w * 0.15, y - 10, w * 0.3, h * 0.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(x + w * 0.15, y - 8, w * 0.25, h * 0.38, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Simbol minus
+                ctx.fillStyle = c.cloudSymbol;
+                ctx.font = 'bold 28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('−', x, y + 4);
+                ctx.restore();
+            }
+
+            // --- Draw Tower ---
+            function drawTower(x, y) {
+                const c = getThemeColors();
+                ctx.save();
+                const w = 14;
+                const h = 60;
+                // Tiang
+                const grad = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+                grad.addColorStop(0, c.towerLeft);
+                grad.addColorStop(0.5, c.towerMid);
+                grad.addColorStop(1, c.towerRight);
+                ctx.fillStyle = grad;
+                ctx.fillRect(x - w / 2, y - h, w, h);
+
+                // Detail cross
+                ctx.strokeStyle = c.towerCross;
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < 4; i++) {
+                    const yy = y - h + 10 + i * 14;
+                    ctx.beginPath();
+                    ctx.moveTo(x - w / 2 - 4, yy);
+                    ctx.lineTo(x + w / 2 + 4, yy);
+                    ctx.stroke();
+                }
+
+                // Pondasi
+                ctx.fillStyle = c.towerBase;
+                ctx.fillRect(x - 18, y - 4, 36, 8);
+
+                // Simbol +
+                ctx.fillStyle = c.towerPlus;
+                ctx.font = 'bold 22px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('+', x, y - h - 8);
+
+                // Streamer glow (jika aktif)
+                if (state.streamerActive && state.streamerProgress > 0.05) {
+                    const glow = ctx.createRadialGradient(x, y - h, 4, x, y - h, 30 + state.streamerProgress * 40);
+                    glow.addColorStop(0, c.streamerGlow);
+                    glow.addColorStop(1, c.streamerGlow.replace(/[\d\.]+\)$/, '0)'));
+                    ctx.fillStyle = glow;
+                    ctx.beginPath();
+                    ctx.arc(x, y - h, 30 + state.streamerProgress * 40, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            // --- Draw Field Lines ---
+            function drawFieldLines() {
+                const c = getThemeColors();
+                ctx.save();
+                ctx.setLineDash([4, 10]);
+                ctx.lineWidth = 1.2;
+                ctx.strokeStyle = c.fieldLines;
+
+                for (let i = -3; i <= 3; i++) {
+                    const xOff = i * W * 0.07;
+                    const startX = cx + xOff;
+                    const endX = cx + xOff * 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, cloudY + 40);
+                    const cp1x = startX + (endX - startX) * 0.3;
+                    const cp1y = (cloudY + towerY) * 0.4;
+                    const cp2x = endX + (startX - endX) * 0.2;
+                    const cp2y = (cloudY + towerY) * 0.7;
+                    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, towerY - 20);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // --- Draw Leader Path ---
+            function drawLeaderPath() {
+                const c = getThemeColors();
+                const pts = state.leaderPoints;
+                if (pts.length < 2) return;
+
+                const activeIndex = Math.min(state.currentStep, pts.length - 1);
+                const base = c.leaderPathActiveStart;
+
+                // Semua segmen (dengan opacity rendah untuk bagian yang belum aktif)
+                ctx.save();
+
+                // Path penuh dengan glow
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const isActive = i < activeIndex;
+
+                    // Glow
+                    if (isActive) {
+                        ctx.shadowColor = c.leaderGlow;
+                        ctx.shadowBlur = 18;
+                    } else {
+                        ctx.shadowColor = 'transparent';
+                        ctx.shadowBlur = 0;
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = isActive ?
+                        `rgba(${base.r},${base.g},${base.b},${0.6 + 0.3 * (i / activeIndex)})` :
+                        c.leaderPathInactive;
+                    ctx.lineWidth = isActive ? 2.8 : 1.2;
+                    ctx.stroke();
+
+                    // titik pada setiap step (untuk efek "berundak")
+                    if (isActive && i > 0 && i % 2 === 0) {
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = `rgba(${base.r},${base.g},${base.b},${0.2 + 0.2 * (i / activeIndex)})`;
+                        ctx.beginPath();
+                        ctx.arc(p2.x, p2.y, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Leader tip (bola bercahaya)
+                if (activeIndex < pts.length - 1 && !state.met) {
+                    const tip = pts[activeIndex];
+                    const grad = ctx.createRadialGradient(tip.x, tip.y, 2, tip.x, tip.y, 18);
+                    grad.addColorStop(0, c.leaderTipInner);
+                    grad.addColorStop(0.3, c.leaderTipMid);
+                    grad.addColorStop(1, c.leaderTipOuter);
+                    ctx.shadowColor = c.leaderGlow.replace(/[\d\.]+\)$/, '0.5)');
+                    ctx.shadowBlur = 40;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(tip.x, tip.y, 18, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = c.leaderTipCore;
+                    ctx.beginPath();
+                    ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Teks "Leader"
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = c.leaderLabel;
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('⬇ leader', tip.x + 14, tip.y + 4);
+                }
+
+                ctx.restore();
+            }
+
+            // --- Draw Streamer ---
+            function drawStreamer() {
+                const c = getThemeColors();
+                if (!state.streamerActive || state.streamerProgress < 0.01) return;
+
+                const startX = state.streamerStartX;
+                const startY = state.streamerStartY;
+                const endX = state.leaderPoints[Math.min(state.currentStep, state.leaderPoints.length - 1)].x;
+                const endY = towerY - 40 - state.streamerProgress * (towerY - 40 - cloudY - 60);
+
+                const progress = Math.min(state.streamerProgress, 1);
+
+                // Streamer path (dari tower ke atas)
+                ctx.save();
+
+                // Glow
+                ctx.shadowColor = c.streamerShadow;
+                ctx.shadowBlur = 30;
+
+                // Path utama
+                const steps = 20;
+                const startP = { x: startX, y: startY };
+                const endP = { x: endX, y: endY };
+
+                ctx.beginPath();
+                ctx.moveTo(startP.x, startP.y);
+
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const pt = getStreamerPoint(startP, endP, t, progress);
+                    if (i === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                }
+
+                ctx.strokeStyle = `${c.streamerPath}${0.4 + 0.4 * progress})`;
+                ctx.lineWidth = 2.2 + 1.2 * progress;
+                ctx.stroke();
+
+                // Streamer tip
+                const tip = getStreamerPoint(startP, endP, 1, progress);
+                const grad = ctx.createRadialGradient(tip.x, tip.y, 2, tip.x, tip.y, 16 + progress * 20);
+                grad.addColorStop(0, `${c.streamerTipInner}${0.7 + 0.3 * progress})`);
+                grad.addColorStop(0.5, `${c.streamerTipMid}${0.3 * progress})`);
+                grad.addColorStop(1, `${c.streamerTipMid}0)`);
+                ctx.shadowBlur = 50;
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(tip.x, tip.y, 16 + progress * 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = `${c.streamerTipCore}${0.6 + 0.4 * progress})`;
+                ctx.beginPath();
+                ctx.arc(tip.x, tip.y, 4 + 2 * progress, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Label
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = c.streamerLabel;
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('⬆ streamer', tip.x - 14, tip.y - 6);
+
+                ctx.restore();
+            }
+
+            function getStreamerPoint(start, end, t, progress) {
+                // Dengan sedikit kelengkungan
+                const x = start.x + (end.x - start.x) * t + Math.sin(t * Math.PI * 2) * 6 * (1 - progress) * 0.5;
+                const y = start.y + (end.y - start.y) * t * progress;
+                return { x, y };
+            }
+
+            // --- Draw Meeting Flash ---
+            function drawMeetingFlash() {
+                const c = getThemeColors();
+                if (state.flashAlpha < 0.01) return;
+                const x = state.meetX;
+                const y = state.meetY;
+
+                ctx.save();
+
+                // Flash besar
+                const radius = 60 + 40 * (1 - state.flashAlpha);
+                const grad = ctx.createRadialGradient(x, y, 2, x, y, radius);
+                grad.addColorStop(0, `${c.flashCenter}${0.9 * state.flashAlpha})`);
+                grad.addColorStop(0.2, `${c.flashMid}${0.7 * state.flashAlpha})`);
+                grad.addColorStop(0.6, `${c.flashOuter}${0.3 * state.flashAlpha})`);
+                grad.addColorStop(1, `${c.flashOuter}0)`);
+                ctx.fillStyle = grad;
+                ctx.shadowColor = c.flashShadow;
+                ctx.shadowBlur = 80;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sinar (garis)
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = `${c.flashStroke}${0.4 * state.flashAlpha})`;
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 12; i++) {
+                    const angle = i * (Math.PI / 6) + state.flashTimer * 0.02;
+                    const r1 = 20 + 10 * (1 - state.flashAlpha);
+                    const r2 = 50 + 40 * (1 - state.flashAlpha);
+                    ctx.beginPath();
+                    ctx.moveTo(x + Math.cos(angle) * r1, y + Math.sin(angle) * r1);
+                    ctx.lineTo(x + Math.cos(angle) * r2, y + Math.sin(angle) * r2);
+                    ctx.stroke();
+                }
+
+                // Text "⚡ SAMBARAN"
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = `${c.flashText}${0.8 * state.flashAlpha})`;
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('⚡ SAMBARAN', x, y - radius - 10);
+
+                ctx.restore();
+            }
+
+            // --- UPDATE SIMULATION ---
+            const STEP_DELAY = 8; // jeda frame antar langkah pada kecepatan dasar
+
+            function advanceOneStep() {
+                if (state.met || state.finished) return;
+
+                if (state.currentStep >= state.maxSteps) {
+                    state.finished = true;
+                    state.playing = false;
+                    playBtn.textContent = '▶ Mulai';
+                    updateStatus('Selesai (tanpa sambaran)', 'idle');
+                    return;
+                }
+
+                state.currentStep++;
+
+                // Aktifkan streamer setelah leader mencapai sekitar 25-40% jalan
+                const progressRatio = state.currentStep / state.maxSteps;
+                if (progressRatio > 0.25 + Math.random() * 0.15 && !state.streamerActive) {
+                    state.streamerActive = true;
+                    updateStatus('Streamer aktif', 'active');
+                }
+
+                // Update streamer progress
+                if (state.streamerActive && state.streamerProgress < 1) {
+                    state.streamerProgress += 0.08;
+                    if (state.streamerProgress > 1) state.streamerProgress = 1;
+                }
+
+                // --- Cek pertemuan ---
+                if (state.streamerActive && state.streamerProgress > 0.1) {
+                    const leaderIdx = Math.min(state.currentStep, state.leaderPoints.length - 1);
+                    const leaderPosPt = state.leaderPoints[leaderIdx];
+                    const streamerTip = getStreamerPoint(
+                        { x: state.streamerStartX, y: state.streamerStartY },
+                        { x: leaderPosPt.x, y: towerY - 40 - state.streamerProgress * (towerY -
+                                40 - cloudY - 60) },
+                        1, state.streamerProgress
+                    );
+
+                    const dx = leaderPosPt.x - streamerTip.x;
+                    const dy = leaderPosPt.y - streamerTip.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Jarak ambang pertemuan
+                    const threshold = 18 + 10 * (1 - state.streamerProgress);
+                    if (dist < threshold) {
+                        // BERTEMU!
+                        state.met = true;
+                        state.meetX = (leaderPosPt.x + streamerTip.x) / 2;
+                        state.meetY = (leaderPosPt.y + streamerTip.y) / 2;
+                        state.flashAlpha = 1;
+                        state.flashTimer = 0;
+                        updateStatus('⚡ SAMBARAN!', 'connected');
+                        strikeStatus.textContent = '⚡ SAMBARAN TERJADI!';
+                    }
+                }
+
+                // Update status jika leader aktif
+                if (state.currentStep > 0 && !state.met) {
+                    updateStatus('Leader turun...', 'active');
+                }
+            }
+
+            function updateSimulation() {
+                if (!state.playing || state.finished) return;
+
+                // Jika sudah bertemu, fokus memudarkan flash
+                if (state.met) {
+                    if (state.flashAlpha > 0.01) {
+                        state.flashAlpha *= 0.90;
+                        state.flashTimer++;
+                    } else {
+                        state.flashAlpha = 0;
+                        state.finished = true;
+                        state.playing = false;
+                        playBtn.textContent = '▶ Mulai';
+                        updateStatus('Selesai', 'connected');
+                    }
+                    drawScene();
+                    updateUI();
+                    return;
+                }
+
+                state.stepDelay += state.speed;
+
+                while (state.stepDelay >= STEP_DELAY) {
+                    state.stepDelay -= STEP_DELAY;
+                    advanceOneStep();
+                    if (state.met || state.finished) break;
+                }
+
+                updateUI();
+                drawScene();
+            }
+
+            // --- ANIMATION LOOP ---
+            function animate() {
+                if (state.playing) {
+                    updateSimulation();
+                }
+                requestAnimationFrame(animate);
+            }
+
+            // --- CONTROLS ---
+            playBtn.addEventListener('click', function() {
+                if (state.finished) {
+                    // jika sudah selesai, reset dulu
+                    resetSimulation();
+                    // lalu play
+                    setTimeout(() => {
+                        state.playing = true;
+                        playBtn.textContent = '⏸ Pause';
+                        updateStatus('Berjalan...', 'active');
+                    }, 100);
+                    return;
+                }
+                state.playing = !state.playing;
+                playBtn.textContent = state.playing ? '⏸ Pause' : '▶ Lanjut';
+                if (state.playing) {
+                    updateStatus('Berjalan...', 'active');
+                } else {
+                    updateStatus('Dijeda', 'idle');
+                }
+            });
+
+            resetBtn.addEventListener('click', function() {
+                resetSimulation();
+                // Hentikan play jika sedang berjalan
+                state.playing = false;
+                playBtn.textContent = '▶ Mulai';
+                drawScene();
+                updateUI();
+            });
+
+            speedSlider.addEventListener('input', function() {
+                const val = parseInt(this.value);
+                state.speed = val;
+                speedDisplay.textContent = val + '×';
+            });
+
+            themeToggle.addEventListener('click', toggleTheme);
+
+            // --- INIT ---
+            function init() {
+                resize();
+                updateCoords();
+                initTheme();
+                resetSimulation();
+                speedDisplay.textContent = state.speed + '×';
+                animate();
+            }
+
+
+            init();
+
+            // --- Tambahan: klik canvas untuk toggle play ---
+            canvas.addEventListener('click', function() {
+                playBtn.click();
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
